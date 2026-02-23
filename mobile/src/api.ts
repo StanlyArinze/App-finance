@@ -15,6 +15,15 @@ type AuthPayload = {
   name?: string;
 };
 
+export type AuthResponsePayload = {
+  ok: boolean;
+  message: string;
+  user?: {
+    id: number;
+    name: string;
+  };
+};
+
 export type SessionPayload = {
   authenticated: boolean;
   user?: {
@@ -49,8 +58,11 @@ export type CreateTransactionPayload = {
 };
 
 async function parseJson<T>(response: Response): Promise<T | null> {
-  if (!response.ok) return null;
-  return response.json() as Promise<T>;
+  try {
+    return (await response.json()) as T;
+  } catch {
+    return null;
+  }
 }
 
 async function request(path: string, init?: RequestInit): Promise<Response> {
@@ -67,33 +79,39 @@ async function request(path: string, init?: RequestInit): Promise<Response> {
   }
 }
 
-export async function register(payload: AuthPayload): Promise<Response> {
+export async function register(payload: AuthPayload): Promise<AuthResponsePayload> {
   const body = new URLSearchParams({
     name: payload.name ?? "",
     email: payload.email,
     password: payload.password
   });
 
-  return request("/register", {
+  const response = await request("/api/register", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: body.toString(),
     credentials: "include"
   });
+
+  const parsed = await parseJson<AuthResponsePayload>(response);
+  return parsed ?? { ok: false, message: "Resposta inválida do servidor." };
 }
 
-export async function login(payload: AuthPayload): Promise<Response> {
+export async function login(payload: AuthPayload): Promise<AuthResponsePayload> {
   const body = new URLSearchParams({
     email: payload.email,
     password: payload.password
   });
 
-  return request("/login", {
+  const response = await request("/api/login", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: body.toString(),
     credentials: "include"
   });
+
+  const parsed = await parseJson<AuthResponsePayload>(response);
+  return parsed ?? { ok: false, message: "Resposta inválida do servidor." };
 }
 
 export async function logout(): Promise<Response> {
@@ -117,6 +135,7 @@ export async function fetchSession(): Promise<SessionPayload | null> {
 export async function fetchDashboard(period?: string): Promise<DashboardPayload | null> {
   const query = period ? `?period=${period}` : "";
   const response = await request(`/api/dashboard${query}`, { credentials: "include" });
+  if (!response.ok) return null;
   return parseJson<DashboardPayload>(response);
 }
 

@@ -179,6 +179,15 @@ def render_session_payload(user: tuple[int, str] | None) -> bytes:
     ).encode("utf-8")
 
 
+
+
+def render_auth_result_payload(ok: bool, message: str, user_id: int | None = None, user_name: str | None = None) -> bytes:
+    payload: dict[str, object] = {"ok": ok, "message": message}
+    if user_id is not None and user_name is not None:
+        payload["user"] = {"id": user_id, "name": user_name}
+    return json.dumps(payload, ensure_ascii=False).encode("utf-8")
+
+
 def render_dashboard_payload(user_id: int, period: str | None = None) -> bytes:
     load_transactions_from_db(user_id)
     year, month = _parse_period(period)
@@ -473,6 +482,49 @@ class SmartBudgetHandler(BaseHTTPRequestHandler):
         content_length = int(self.headers.get("Content-Length", "0"))
         data = self.rfile.read(content_length).decode("utf-8")
         form_data = parse_qs(data)
+
+        if self.path == "/api/register":
+            name = form_data.get("name", [""])[0]
+            email = form_data.get("email", [""])[0]
+            password = form_data.get("password", [""])[0]
+            ok, payload = repository.create_user(name, email, password)
+            if not ok:
+                self._send_json(render_auth_result_payload(False, str(payload)), status=HTTPStatus.BAD_REQUEST)
+                return
+
+            user_id = int(payload)
+            user = repository.get_user(user_id)
+            user_name = user[1] if user else name.strip()
+            token = secrets.token_urlsafe(32)
+            sessions[token] = user_id
+            self.send_response(HTTPStatus.CREATED)
+            _set_session_cookie(self, token)
+            body = render_auth_result_payload(True, "Conta criada com sucesso.", user_id=user_id, user_name=user_name)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        if self.path == "/api/login":
+            email = form_data.get("email", [""])[0]
+            password = form_data.get("password", [""])[0]
+            ok, payload = repository.authenticate_user(email, password)
+            if not ok:
+                self._send_json(render_auth_result_payload(False, str(payload)), status=HTTPStatus.UNAUTHORIZED)
+                return
+
+            user_id, user_name = payload
+            token = secrets.token_urlsafe(32)
+            sessions[token] = user_id
+            self.send_response(HTTPStatus.OK)
+            _set_session_cookie(self, token)
+            body = render_auth_result_payload(True, "Login realizado com sucesso.", user_id=user_id, user_name=user_name)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
 
         if self.path == "/register":
             name = form_data.get("name", [""])[0]

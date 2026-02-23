@@ -116,3 +116,13 @@ Depois reinicie o Metro limpando cache:
 ```powershell
 npm run start -- --clear
 ```
+
+
+## Registro/Login no mobile (mensagens reais)
+O app agora usa endpoints JSON dedicados (`/api/register` e `/api/login`) e mostra a mensagem retornada pelo backend.
+
+Exemplos comuns:
+- `Preencha nome, e-mail e senha (mínimo 4 caracteres).`
+- `Este e-mail já está cadastrado.`
+- `Usuário não encontrado.`
+- `Senha inválida.`

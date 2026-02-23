@@ -29,7 +29,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     try {
       const response = await apiLogin({ email, password });
       if (!response.ok) {
-        return "Falha no login. Verifique e-mail e senha.";
+        return response.message || "Falha no login. Verifique e-mail e senha.";
       }
 
       await SecureStore.setItemAsync(KEY, "1");
@@ -44,7 +44,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     try {
       const response = await apiRegister({ name, email, password });
       if (!response.ok) {
-        return "Não foi possível criar conta. Confira os dados.";
+        return response.message || "Não foi possível criar conta. Confira os dados.";
       }
 
       await SecureStore.setItemAsync(KEY, "1");

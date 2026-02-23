@@ -4,6 +4,7 @@ from urllib.parse import parse_qs
 from smartbudget.web.app import (
     ledger,
     render_auth_page,
+    render_auth_result_payload,
     render_dashboard,
     render_dashboard_payload,
     render_health_payload,
@@ -117,3 +118,11 @@ def test_render_dashboard_payload_json():
     assert payload["top_category"]
     assert payload["insight"]
     assert len(payload["transactions"]) == 2
+
+
+def test_render_auth_result_payload_json():
+    failed = json.loads(render_auth_result_payload(False, "Erro de teste").decode("utf-8"))
+    assert failed == {"ok": False, "message": "Erro de teste"}
+
+    success = json.loads(render_auth_result_payload(True, "OK", user_id=1, user_name="Ana").decode("utf-8"))
+    assert success == {"ok": True, "message": "OK", "user": {"id": 1, "name": "Ana"}}
