@@ -117,14 +117,23 @@ npm run start -- --clear
 
 
 ## Preparação para Play Store
-Status atual: iniciado ✅
+Status atual: base pronta ✅
 
-Checklist técnico pendente antes de publicação:
-1. Definir package id Android final (`android.package`) no `app.json`.
-2. Gerar ícones/splash definitivos e adaptar para dark/light.
-3. Configurar EAS Build (`eas.json`) e gerar `.aab` assinado.
-4. Revisar permissões e política de privacidade (coleta de dados/cache local).
-5. Criar versão release com testes em dispositivo real (Android 11+).
-6. Preparar ficha da loja (descrição, screenshots, classificação etária, contato).
+Concluído nesta etapa:
+1. `android.package` final definido (`com.myfinance.app`).
+2. Ícone/splash finais serão versionados fora do repositório (evitar binários neste PR).
+3. EAS Build configurado para preview (APK) e produção (AAB).
+4. Permissões Android mínimas revisadas (`INTERNET`).
+5. Política de privacidade criada em `mobile/PRIVACY_POLICY.md`.
+6. Ficha inicial da loja criada em `mobile/PLAYSTORE_LISTING_PTBR.md`.
+7. Bateria de testes em aparelhos reais definida em `mobile/REAL_DEVICE_TEST_PLAN.md`.
 
-Observação: como o app está offline-first, já atende bem o uso local sem backend, mas ainda falta pipeline de release para Play Store.
+Próximos comandos (mantenedor):
+```powershell
+cd .\mobile
+npx eas-cli@latest login
+npx eas-cli@latest build -p android --profile production
+npx eas-cli@latest submit -p android --profile production
+```
+
+Observação: geração do `.aab` assinado depende da autenticação da conta Expo/Google Play do mantenedor.
