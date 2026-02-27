@@ -137,3 +137,13 @@ npx eas-cli@latest submit -p android --profile production
 ```
 
 Observação: geração do `.aab` assinado depende da autenticação da conta Expo/Google Play do mantenedor.
+
+## Erro `Unable to resolve react-native-svg`
+Se o bundle falhar com erro em `import Svg ... from "react-native-svg"`, instale a dependência compatível com o Expo SDK:
+
+```powershell
+cd .\mobile
+npx expo install react-native-svg
+npm install
+npm run start -- --clear
+```
