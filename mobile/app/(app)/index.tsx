@@ -49,7 +49,24 @@ function monthKey(date = new Date()): string {
 }
 
 function money(value: number): string {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const safeValue = Number.isFinite(value) ? value : 0;
+
+  try {
+    if (typeof Intl !== "undefined" && typeof Intl.NumberFormat === "function") {
+      return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(safeValue);
+    }
+  } catch {
+    // fallback abaixo
+  }
+
+  const signal = safeValue < 0 ? "-" : "";
+  const absolute = Math.abs(safeValue);
+  return `${signal}R$ ${absolute.toFixed(2).replace(".", ",")}`;
 }
 
 function monthLabel(period: string): string {

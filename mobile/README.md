@@ -134,3 +134,21 @@ npx expo install react-native-svg
 npm install
 npm run start -- --clear
 ```
+
+## APK abre e fecha instantaneamente (release)
+Se o app fecha logo ao abrir em APK de release, rode estes passos:
+
+```powershell
+cd .\mobile
+npm install
+npx expo install --fix
+npm run start -- --clear
+```
+
+Se continuar, gere logs do Android para identificar a exceção real:
+
+```bash
+adb logcat | findstr -i "AndroidRuntime ReactNativeJS"
+```
+
+Observação: esta versão já possui fallback de formatação monetária para evitar crash em ambientes sem suporte completo de `Intl`.
